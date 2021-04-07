@@ -14,6 +14,391 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
-library(ricmdWorkflow)
+
+Data workflows with iRODS and Git
+
+# Introduction
+
+Doing data science is doing stuff with data using a myriad of methods
+and algorithms. Besides doing stuff with data, you must also manage
+your data, or have it managed for you. The holy in grail in data
+management is findable, interoperable, accessible and reuasable (FAIR)
+data. However this data is often produced by some data scientists
+'doing stuff' with data. 
+
+Now let's focus on the reuasable part of FAIR. Considering that data
+must be reusable, one must understand how this data is created. What
+source data is used, what are the methods and algorithms used on that
+data and how are these methods and algorithms applied? So to understand
+the data, assess it's quality and determine if the data can be re-used
+in your project, you have to find out all things about the 'doing stuff'
+which created the dataset.
+
+In R all this 'doing stuff' is written in code.  If you write your code
+carefully and manage your data properly, then your work will be reusable
+and reproducible by others. If they can reuse and reproduce your work,
+they can very precisely understand what happened to the data. They can
+validate your work but also they can use your work to enhance the data,
+improve your methods, or create your data in a form that specifically
+fits their needs.
+
+And there is another big advantage of reusing data. The one thing data
+scientists don't like is data janitoring. Before they start with their
+algorithms the data must be ready. This means importing data, cleaning
+the data and combine the data with other data. It's not uncommon that
+this data janitoring takes 80% of the time spent on a data product,
+that means you'll only spent 20% of your time on fun stuff. Now what
+happens if you find out that your colleague allready did some janitoring
+on the data you're interested in. You can take that data and take it
+from there, reducing the 80% janitoring and increasing the 20% fun.
+But first, you have to find that data and you must be able to reuse
+that data. Usually when people think of findable data, one thinks of
+the final end product, not the intermediate datasets. Finding
+intermediate datasets can increase your efficiency, but only if you
+can reuse and reproduce, so you can precisely understand how the data
+are created.
+
+Within a research organisation there is no single input and output
+data set. Data products, either reports, dashboards, or datasets, et
+cetera, are a combination of data sets, which on their turn are
+derived from other datasets. Also there is no single 'doing stuff'
+somewhere, but a whole lot of stuff was done on datasets, creating new
+datasets, which finally resulted in the data product. Now, how do you
+understand that?
+
+There is no need to understand each detail in the flow of data sets
+and code scripts, but at least it must be traceable. Based on a single
+dataset you must be able to determine which code produced that data
+and what intermediate data sets are used, all the way back to the
+source data. It's sounds difficult, but the solution is rather simple.
+Just write your code carefully and manage your data properly. Oh, and
+with the help of some tools: Git and iRODS.
+
+# Prerequisits
+
+If you want to collaborate with fellow data scientists you need a
+common ground to store your code and data. If your code or data is not
+findable and accessible by others, collaboration isn't possible.
+
+For this document we asume that you store your code in Git and each
+script you work on is under version control (i.e. added to your git
+repository). If the code is not in your Git repository, it does not
+exists. And who wants to admit that he or she is working on
+non-existsing code?
+
+Your data must be stored in iRODS. Not just the end
+product, also the intermediate data which can be reused. All the
+data not stored in iRODS isn't findable. So from your colleague point
+of view, it does not exists. And nobody want's to work on non-existing
+data, or do you?
+
+So repeat for yourself, 'my code is in a Git repository, my data is in
+an iRODS data repository'. No excuses!
+
+If someone sends you data or code by mail, or refer to a shared disk
+drive, just remember him or her that that data doesn't exists, and
+that you can't work on non-existing data. But be nice, also tell them
+that you can bring their data and code into existence whem you import it
+into git and iRODS.
+
+## The data science workflow
+
+But before we start, let's dive a little further into the data
+workflow. Data scientist using R are familiar with the workflow model
+from Grollemund and Wickham (REF) (If your not, shame on you, go read
+that book!). This workflow is depicted in the figure below, the full
+explanation of this workflow can be read in the introduction chapter
+of Grollemund & Wickham (REF).
+
+```{r out.width="100%", echo=FALSE}
+knitr::include_graphics("fig1.png")
 ```
+
+
+The above figure is a single lineair workflow for a single project,
+using a single data set (import) and a single product (communication).
+Unfortunately, that's not real life. Often we use multiple sources and
+the results is communicated in multiple ways, for example as a report,
+a data set and a bunch of visualisations. So real life looks more like
+the next figure.
+
+```{r out.width="100%", echo=FALSE}
+knitr::include_graphics("fig2.png")
+```
+
+In your daily work you don't only have multiple data sources, multiple products
+but also multiple scripts (or programms) to handle it all. Some of those
+scripts are creating intermediate data which can be reused and
+therefore must by findable and stored in the data repository.
+
+So life is a bit more complicated then a single workflow. To manage
+the many dataset you use a data repossitory, like iRODS. The figure
+below tries to depict that life.
+
+```{r out.width="100%", echo=FALSE}
+knitr::include_graphics("fig3.png")
+```
+
+Data is imported from a source, often an online resource, and tidied
+to prepare it for the data analyses. This tidy data is reusable and,
+hence, can be used again if it is stored in the data repository. The data
+analyses, the 'understand' part of the workflow, is somewhat indepent
+from the import and tidy steps, since it can directly get the tidy
+data from the data repository.
+
+It is also possible to directly import data from an online resource
+and use it in an analyses, if this data is allready tidy enough. Also
+one can import data from the data repository and tidy it further, if
+necessary.
+
+Results of the analyses, new data sets, are also stored in de data
+repository. So they can be found and reused (remember, if you don't
+store your data, it does not exists)
+
+Now let's look at the big picture. You have data, you do some stuff
+with the data, and then you create new data, or a data product. This
+data product can be used in some other project, in this other project
+you do some stuff with the data, and create new data or a new data
+product. And then there is yet another project in which something will
+be done with this new data product. You get the idea, right?
+
+Figure X depicts the small picture, you get some data, do your stuff
+and then you have your data product. This data flow is the corner
+stone of the big picture.
+
+```{r out.width="100%", echo=FALSE}
+knitr::include_graphics("fig4.png")
+```
+
+Now Figure X shows the big picture. Als these data sets, programms and
+data product are somehow connected by use and re-use of data. Each
+data set and script is part of an much larger 'thing' on which
+everything is related to everything else. And how on earth do you keep
+track of all these relations.
+
+```{r out.width="100%", echo=FALSE}
+knitr::include_graphics("fig5.png")
+```
+
+
+As said before, the solution is rather simple. Just write your code
+carefully and manage your data properly. And use some tools.
+
+Now I hear you think, let's get on with it, show me how to do it. But
+before we start we have to talk about some boring stuf: meta data.
+
+## Meta data and audit trails
+
+Meta data is data about data. It describes what the data is about (not
+what's in the data, you have statistics for that). In iRODS you can
+add meta data to data objects. So you can add information about the
+data source, the format of the data, owner of the data, licences, and
+add some keywords about the data. But you can also add information how
+the data is created. 
+
+Since you're creating data with your code, adding a reference to the 
+Git repository and the script in the meta data is enough information
+about how the data is created. If someone wants to research the
+creation of the dataset he or she only has to look up the script in
+the git repository and gets all the dirty details. Assuming that your
+code is readable.
+
+So now you know where the data is comming from, but how do you know
+were the data is going to?
+
+Again, the answer is simple. If you download data from the data
+repository, you can leave a trace in the meta data of that data object. If
+you put a reference of your script and Git repository in the meta data,
+you tell everyone 'hey, I'm using this data'. So, schematically the
+link between data, meta data and git looks like this:
+
+```{r out.width="100%", echo=FALSE}
+knitr::include_graphics("fig6.png")
+```
+
+
+And if you leave traces in the meta data, telling which scripts produced
+and which script used the data,  then you just have to follow the trail
+backwards to know how all this ended up here. And that trail is what
+we call, an audit trail. (Some call it audit log, or data flow or
+audit flow... Whatever, let's skip the semantic discussion)
+
+And if you trace all the paths, you get that 'thing' from the big
+picture. It's a graph of al the relations between data and code. Now you
+know exactly how data and code depends on other data and code.  Imagine
+that someone changes something, somewhere. Now you know exactly how that
+change can impact other data products. Or if someone challenges your data
+product, you can explain him or her in utterly boring detail how it is
+created. Oh, and do you have Quality Managers wandering around in your
+arganisation? Show them such a graph and they show you their tears of joy.
+
+But wait a minute! Do I have to add all those audit trail data to each
+data object I create or use? That's boring! It takes to much time! And
+it is prone to errors!
+
+Luckily you don't have to. There is an easy sollution. Did I allready
+tell you that just have to write your code carefully and manage
+your data properly. And use some tools.
+
+## The ricmdProject package
+
+The most important tool which you need to create your audit trail is
+the *ricmdProj* package. This package is an extention on the *ricmd*
+package with some functions to collect data from git and add meta data
+for the audit trail in iRODS.  
+
+The package uses the *git2r* package to get al the necessary data from 
+git. It creates a reference of your script in the git repository and
+adds this reference (and some other meta data) to iRODS data objects.
+
+*TODO*
+what it does ...
+
+
+# Workflow
+
+*TODO alinea updaten t.o.v code voorbeeld*
+
+Now let's demonstrate this workflow. First we will create some
+data and store this data in iRODS, so we have something to work with.
+Then we start our workflow. We get some data, do some stuff with it
+and store the result in iRODS. Meanwhile we take a look at the meta
+data to see how the relations between script and data are stored.
+
+## Set everything up
+
+Before we start with our data we have to set things up. We have to
+install the necessary packages from Github and load them.
+
+```{r eval=FALSE}
+# Install latest version and load libraries
+remotes::install_github("jspijker/ricmd",build_vignettes=TRUE)
+library(ricmd)
+
+remotes::install_github("jspijker/datafile",build_vignettes=TRUE)
+library(datafile)
+
+remotes::install_github("jspijker/ricmdProj",build_vignettes=TRUE)
+library(ricmdProj)
+```
+
+Then we start our iRODS session, select the default collection, and 
+initialise the local data directory.
+
+```{r eval=FALSE}
+
+# start session
+ri_session()
+
+# set defaul collection
+ri_setCollection("/tempZone/home/devel")
+
+# create data directory, using default (./data)
+datafileInit()
+
+# set local data directory
+ri_setDatadir(datafile(""))
+
+
+```
+
+Now we have to initialise our project meta data. We have to set the
+filename of the script by hand since there is no method in R to
+determine from which script code is running. All other data are
+collected automatically.
+
+```{r eval=FALSE}
+
+ri_workflowInit(script="workflows.Rmd")
+
+```
+
+This function also checks if this script exists, if not, it throws an
+error.
+
+Now everything is set up, so let's store some data.
+
+## Create some data 
+
+Let's create some fake data. This is just to create a dataset so we
+have something to work with. We use the *ricmd* package to connect to
+iRODS and the *datafile* package to manage the data on our local disk.
+
+The data is nothing more then a single vector with random numbers. We
+store this dataset as *rds* file in our data directory. Then we put
+the data in iRODS. 
+
+```{r eval=FALSE}
+
+# create data
+x <- rnorm(100)
+# store data
+saveRDS(datafile("data1.rds"))
+
+```
+
+Now store the data in iRODS and add some meta data information.
+
+```{r eval=FALSE}
+# store data
+ri_put(filename=datafile("data1.rds"))
+
+# and add some meta data
+ri_metaAdd(object="data1.rds", 
+           attribute="description",value="Vector with random numbers")
+ri_metaAdd(object="data1.rds", 
+           attribute="project",value="Data workflows")
+
+```
+
+Now we have our data stored as data object in iRODS and added some
+meta data. So the next step is to add our project meta data so it is
+clear which script created the data.
+
+## Add project meta data to our data
+
+Now that we have our data in place we add the project meta data to our
+data object. Since we allready initialised this data using the
+*ri\_projInit* function, we just call the *ri\_metaAddProj* function to
+do al the work.
+
+```{r eval=FALSE}
+
+ri_metaAddProj(object="data1.rds")
+
+```
+
+And in case you are curious what we have added, have a look at all te
+meta data of our data object
+
+```{r eval=FALSE}
+ri_metaGet("data1.rds")
+
+```
+
+## Using and regestration of data
+
+When you use a data object from iRODS you need to leave your trace in the
+meta data. This is done by the *ri_register* function. 
+
+```{r eval=FALSE}
+
+# first get the data from iRODS, overwrite if it's allready exists
+ri_get(object="data1.rds",overwrite=TRUE)
+
+# Then register the use of this data in the iRODS meta data
+ri_registrer(object='data1.rds')
+
+```
+
+For convienence there is also an command with both gets and registrers
+the data object. This command is nothing more than a function wich
+subsequently calls *ri\_get* and *ri\_registrer*.
+
+```{r eval=FALSE}
+ri_getRegistrer(object="data1.rds",overwrite=TRUE)
+```
+
+# Conclusion
+
+TBD
